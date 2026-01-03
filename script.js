@@ -93,7 +93,7 @@ const members = [
         id: 5,
         nickname: "Илюша Психопатов",
         username: "@ownerTwilight",
-        category: "Медийка",
+        category: "Медийки",
         role: "Медийка",
         description: "был в вк км 2017-2020 с другой лики",
         avatar: "img/avatar5.png",
