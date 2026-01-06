@@ -31,7 +31,7 @@ function initAuth() {
     const appBtn = document.getElementById('application-btn');
     const adminBtn = document.getElementById('admin-btn');
     
-    if (loginBtn) {
+    if (loginBtn) { 
         loginBtn.addEventListener('click', () => openModal('auth-modal'));
     }
     
