@@ -1,3 +1,270 @@
+// API URL для Google Apps Script
+const API_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+
+// Глобальные переменные
+let currentUser = null;
+
+// Дополнить инициализацию
+document.addEventListener('DOMContentLoaded', function() {
+    initNavigation();
+    initMembers();
+    initSnow();
+    initSettings();
+    initNeonControls();
+    initAnimatedBg();
+    initModals();
+    loadSavedSettings();
+    initDynamicNeon();
+    initAllAvatars();
+    
+    generateBgGrid();
+    
+    // Новая инициализация
+    initAuth();
+    initApplicationForm();
+    checkAuth();
+});
+
+// Инициализация авторизации
+function initAuth() {
+    const loginBtn = document.getElementById('login-btn');
+    const appBtn = document.getElementById('application-btn');
+    const adminBtn = document.getElementById('admin-btn');
+    
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => openModal('auth-modal'));
+    }
+    
+    if (appBtn) {
+        appBtn.addEventListener('click', () => openModal('application-modal'));
+    }
+    
+    if (adminBtn) {
+        adminBtn.addEventListener('click', () => {
+            window.open('admin.html', '_blank');
+        });
+    }
+    
+    // Форма логина
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'login',
+                    email: email,
+                    password: password
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                localStorage.setItem('fame_token', result.token);
+                localStorage.setItem('fame_email', email);
+                localStorage.setItem('fame_role', result.role || 'user');
+                
+                currentUser = {
+                    email: email,
+                    token: result.token,
+                    role: result.role
+                };
+                
+                alert('Успешный вход!');
+                closeModal(document.getElementById('auth-modal'));
+                updateAuthUI();
+            } else {
+                alert('Ошибка: ' + result.error);
+            }
+        });
+    }
+    
+    // Форма регистрации
+    const registerForm = document.getElementById('register-form');
+    if (registerForm) {
+        registerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const password2 = document.getElementById('register-password2').value;
+            
+            if (password !== password2) {
+                alert('Пароли не совпадают!');
+                return;
+            }
+            
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'register',
+                    email: email,
+                    password: password
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('Регистрация успешна! Теперь войдите.');
+                document.querySelectorAll('.auth-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                    if (tab.dataset.tab === 'login') {
+                        tab.classList.add('active');
+                    }
+                });
+            } else {
+                alert('Ошибка: ' + result.error);
+            }
+        });
+    }
+    
+    // Забыл пароль
+    const forgotBtn = document.getElementById('forgot-password');
+    if (forgotBtn) {
+        forgotBtn.addEventListener('click', () => {
+            alert('Свяжитесь с владельцем: @nothevo в Telegram');
+        });
+    }
+}
+
+// Проверка авторизации
+function checkAuth() {
+    const token = localStorage.getItem('fame_token');
+    const email = localStorage.getItem('fame_email');
+    const role = localStorage.getItem('fame_role');
+    
+    if (token && email) {
+        currentUser = { email, token, role };
+        updateAuthUI();
+    }
+}
+
+// Обновление UI авторизации
+function updateAuthUI() {
+    const loginBtn = document.getElementById('login-btn');
+    const appBtn = document.getElementById('application-btn');
+    const adminBtn = document.getElementById('admin-btn');
+    
+    if (currentUser) {
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (appBtn) appBtn.style.display = 'block';
+        
+        if (currentUser.role === 'admin' || currentUser.email === 'uesxa225@gmail.com') {
+            if (adminBtn) adminBtn.style.display = 'block';
+        }
+    }
+}
+
+// Инициализация формы заявки
+function initApplicationForm() {
+    const form = document.getElementById('application-form');
+    const descTextarea = document.getElementById('app-description');
+    const charRemaining = document.getElementById('char-remaining');
+    const addLinkBtn = document.getElementById('add-link-btn');
+    
+    if (descTextarea && charRemaining) {
+        descTextarea.addEventListener('input', function() {
+            const remaining = 3000 - this.value.length;
+            charRemaining.textContent = remaining;
+        });
+    }
+    
+    if (addLinkBtn) {
+        addLinkBtn.addEventListener('click', addLinkField);
+    }
+    
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!currentUser) {
+                alert('Сначала войдите!');
+                openModal('auth-modal');
+                return;
+            }
+            
+            const linkInputs = document.querySelectorAll('.extra-link');
+            const extraLinks = [];
+            linkInputs.forEach(input => {
+                if (input.value.trim()) {
+                    extraLinks.push(input.value.trim());
+                }
+            });
+            
+            const application = {
+                email: currentUser.email,
+                avatar: document.getElementById('app-avatar').value,
+                nickname: document.getElementById('app-nickname').value,
+                username: document.getElementById('app-username').value,
+                project: document.getElementById('app-project').value,
+                extra_links: extraLinks,
+                description: document.getElementById('app-description').value
+            };
+            
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'submit_application',
+                    ...application
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('Заявка отправлена! Ожидайте рассмотрения.');
+                closeModal(document.getElementById('application-modal'));
+                form.reset();
+            } else {
+                alert('Ошибка: ' + result.error);
+            }
+        });
+    }
+}
+
+// Функции для ссылок
+function addLinkField() {
+    const container = document.getElementById('extra-links-container');
+    const currentCount = container.querySelectorAll('.link-input').length;
+    
+    if (currentCount >= 10) {
+        alert('Максимум 10 ссылок!');
+        return;
+    }
+    
+    const div = document.createElement('div');
+    div.className = 'link-input';
+    div.innerHTML = `
+        <input type="url" class="extra-link" placeholder="https://...">
+        <button type="button" class="remove-link">×</button>
+    `;
+    
+    const removeBtn = div.querySelector('.remove-link');
+    removeBtn.addEventListener('click', () => removeLink(removeBtn));
+    
+    container.appendChild(div);
+}
+
+function removeLink(button) {
+    button.parentElement.remove();
+}
+
+// Выход
+function logout() {
+    localStorage.removeItem('fame_token');
+    localStorage.removeItem('fame_email');
+    localStorage.removeItem('fame_role');
+    currentUser = null;
+    updateAuthUI();
+    alert('Вы вышли');
+}
 // ДАННЫЕ УЧАСТНИКОВ - 28 УЧАСТНИКОВ
 const members = [
     {
