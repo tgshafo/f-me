@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ панель - Fame TG</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="nav-left">
+            <h1 class="logo text-neon-flow">Админ панель</h1>
+        </div>
+        <div class="nav-right">
+            <button class="nav-icon" onclick="window.location.href='index.html'">
+                <i class="fas fa-home"></i> На сайт
+            </button>
+            <button class="nav-icon" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Выход
+            </button>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        <div class="stats-grid">
+            <div class="stat-card pending">
+                <h3>ОЖИДАНИЕ</h3>
+                <div class="stat-value" id="stat-pending">0</div>
+            </div>
+            <div class="stat-card rejected">
+                <h3>ОТКАЗ</h3>
+                <div class="stat-value" id="stat-rejected">0</div>
+            </div>
+            <div class="stat-card accepted">
+                <h3>ПРИНЯТЫЕ</h3>
+                <div class="stat-value" id="stat-accepted">0</div>
+            </div>
+            <div class="stat-card members">
+                <h3>В ФЕЙМ ЛИСТЕ</h3>
+                <div class="stat-value" id="stat-members">0</div>
+            </div>
+        </div>
+
+        <div class="applications-section">
+            <h2>Заявки на рассмотрении</h2>
+            <div class="applications-list" id="applications-container">
+                <!-- Заявки загружаются через JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
